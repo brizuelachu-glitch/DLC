@@ -85,9 +85,10 @@ button { background: #2563eb; color: white; }
 <div id="members" class="page">
     <h3>Members</h3>
 
-    <input id="newMember" placeholder="Add member name">
-    <button onclick="addMember()">Add Member</button>
-
+   <input id="newMember" placeholder="Member name">
+<input id="memberReason" placeholder="Reason (e.g. Monthly Fee)">
+<button onclick="addMember()">Add Member</button>
+    
     <div id="memberList"></div>
 </div>
 
@@ -137,9 +138,21 @@ function render() {
 // ADD MEMBER
 function addMember() {
     let name = document.getElementById("newMember").value;
-    if (!name) return;
+    let reason = document.getElementById("memberReason").value;
 
-    members.push(name);
+    if (!name || !reason) {
+        alert("Fill all fields");
+        return;
+    }
+
+    members.push({name, reason});
+    localStorage.setItem("members", JSON.stringify(members));
+
+    document.getElementById("newMember").value = "";
+    document.getElementById("memberReason").value = "";
+
+    renderMembers();
+}
     localStorage.setItem("members", JSON.stringify(members));
 
     document.getElementById("newMember").value = "";
@@ -152,13 +165,13 @@ function renderMembers() {
     list.innerHTML = "";
 
     members.forEach(name => {
-        let paid = data.some(t => t.m === name && t.a > 0);
-
+       let paid = data.some(t => t.m === member.name && t.a > 0);
         let div = document.createElement("div");
         div.className = "card";
 
         div.innerHTML = `
-        <b>${name}</b><br>
+        <b>${member.name}</b><br>
+<small>${member.reason}</small><br>
         <span style="color:${paid ? 'lightgreen' : 'red'}">
         ${paid ? 'Paid' : 'Not Paid'}
         </span>
