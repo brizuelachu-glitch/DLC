@@ -2,9 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DL Funds</title>
-
-<link rel="manifest" href="manifest.json">
+<title>DLC Funds</title>
 
 <style>
 body {
@@ -12,11 +10,24 @@ body {
     margin: 0;
     background: #0f172a;
     color: white;
-    text-align: center;
 }
 
+/* TABS */
+.tab {
+    display: flex;
+    background: #1e293b;
+}
+.tab button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: none;
+    color: white;
+}
+
+/* INPUTS */
 input, button {
-    width: 80%;
+    width: 90%;
     padding: 10px;
     margin: 10px;
     border-radius: 10px;
@@ -25,9 +36,11 @@ input, button {
 
 button { background: #2563eb; color: white; }
 
+/* PAGES */
 .page { display: none; padding: 15px; }
 .active { display: block; }
 
+/* CARD */
 .card {
     background: #1e293b;
     padding: 10px;
@@ -39,22 +52,50 @@ button { background: #2563eb; color: white; }
 
 <body>
 
-<h2>Drum & Lyre Funds</h2>
+<h2 style="text-align:center;">Drum & Lyre Funds</h2>
 
-<input id="member" placeholder="Member">
-<input id="reason" placeholder="Reason">
-<input id="amount" type="number" placeholder="Amount">
-<label><input type="checkbox" id="exp"> Expense</label>
+<!-- TABS -->
+<div class="tab">
+<button onclick="show('home')">Funds</button>
+<button onclick="show('add')">Add</button>
+<button onclick="show('history')">History</button>
+<button onclick="show('members')">Members</button>
+</div>
 
-<button onclick="save()">Save</button>
+<!-- HOME -->
+<div id="home" class="page active">
+    <h1 id="total">₱0</h1>
+</div>
 
-<h3 id="total">₱0</h3>
+<!-- ADD -->
+<div id="add" class="page">
+    <input id="member" placeholder="Member">
+    <input id="reason" placeholder="Reason">
+    <input id="amount" type="number" placeholder="Amount">
+    <label><input type="checkbox" id="exp"> Expense</label>
+    <button onclick="save()">Save</button>
+</div>
 
-<div id="list"></div>
+<!-- HISTORY -->
+<div id="history" class="page">
+    <div id="list"></div>
+</div>
+
+<!-- MEMBERS -->
+<div id="members" class="page">
+    <h3>Members</h3>
+
+    <input id="newMember" placeholder="Add member name">
+    <button onclick="addMember()">Add Member</button>
+
+    <div id="memberList"></div>
+</div>
 
 <script>
 let data = JSON.parse(localStorage.getItem("funds")) || [];
+let members = JSON.parse(localStorage.getItem("members")) || [];
 
+// SAVE TRANSACTION
 function save() {
     let m = document.getElementById("member").value;
     let r = document.getElementById("reason").value;
@@ -71,6 +112,7 @@ function save() {
     render();
 }
 
+// RENDER FUNDS + HISTORY
 function render() {
     let total = data.reduce((s,i)=>s+i.a,0);
     document.getElementById("total").innerText = "₱"+total;
@@ -88,6 +130,48 @@ function render() {
         <small>${i.date}</small>`;
         list.appendChild(div);
     });
+
+    renderMembers();
+}
+
+// ADD MEMBER
+function addMember() {
+    let name = document.getElementById("newMember").value;
+    if (!name) return;
+
+    members.push(name);
+    localStorage.setItem("members", JSON.stringify(members));
+
+    document.getElementById("newMember").value = "";
+    renderMembers();
+}
+
+// SHOW MEMBERS + STATUS
+function renderMembers() {
+    let list = document.getElementById("memberList");
+    list.innerHTML = "";
+
+    members.forEach(name => {
+        let paid = data.some(t => t.m === name && t.a > 0);
+
+        let div = document.createElement("div");
+        div.className = "card";
+
+        div.innerHTML = `
+        <b>${name}</b><br>
+        <span style="color:${paid ? 'lightgreen' : 'red'}">
+        ${paid ? 'Paid' : 'Not Paid'}
+        </span>
+        `;
+
+        list.appendChild(div);
+    });
+}
+
+// TAB SWITCH
+function show(page) {
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.getElementById(page).classList.add("active");
 }
 
 render();
