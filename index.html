@@ -24,7 +24,6 @@ body {
     padding: 15px;
     cursor: pointer;
     color: #cfd6ff;
-    transition: 0.3s;
 }
 
 .tab.active {
@@ -98,8 +97,9 @@ button {
 
     <input id="pName" placeholder="Name">
     <input id="pAmount" placeholder="Amount paid">
+    <input id="pReason" placeholder="Reason for payment">
 
-    <input id="subAmount" placeholder="Subtract amount (expense)">
+    <input id="subAmount" placeholder="Expense amount">
     <input id="subReason" placeholder="Reason for expense">
 
     <button onclick="addPaid()">Add Paid</button>
@@ -148,19 +148,20 @@ function showTab(tab) {
     event.target.classList.add("active");
 }
 
-/* ADD PAID */
+/* PAID */
 function addPaid() {
     let name = document.getElementById("pName").value;
     let amount = Number(document.getElementById("pAmount").value);
+    let reason = document.getElementById("pReason").value;
 
     if (!name || !amount) return;
 
-    paid.push({ name, amount });
+    paid.push({ name, amount, reason });
     save();
     render();
 }
 
-/* ADD UNPAID */
+/* UNPAID */
 function addUnpaid() {
     let name = document.getElementById("uName").value;
     let reason = document.getElementById("uReason").value;
@@ -172,7 +173,7 @@ function addUnpaid() {
     render();
 }
 
-/* ADD EXPENSE */
+/* EXPENSE */
 function subtract() {
     let amount = Number(document.getElementById("subAmount").value);
     let reason = document.getElementById("subReason").value;
@@ -184,7 +185,7 @@ function subtract() {
     render();
 }
 
-/* TOTAL FUNDS */
+/* TOTAL */
 function getTotal() {
     let totalPaid = paid.reduce((sum, p) => sum + Number(p.amount), 0);
     let totalSub = subtractions.reduce((sum, s) => sum + Number(s.amount), 0);
@@ -192,33 +193,51 @@ function getTotal() {
     return totalPaid - totalSub;
 }
 
-/* RENDER EVERYTHING */
+/* RENDER */
 function render() {
 
     document.getElementById("paidList").innerHTML =
         paid.map(p =>
-            `<div class="card">💰 ${p.name} — ₱${p.amount}</div>`
+            `<div class="card">
+                💰 ${p.name} — ₱${p.amount} <br>
+                📝 ${p.reason || "No reason"}
+            </div>`
         ).join("");
 
     document.getElementById("unpaidList").innerHTML =
         unpaid.map(u =>
-            `<div class="card">❌ ${u.name} — ${u.reason}</div>`
+            `<div class="card">
+                ❌ ${u.name} — ${u.reason}
+            </div>`
         ).join("");
+
+    let expensesHTML =
+        subtractions.length === 0
+        ? "<div class='card'>No expenses yet</div>"
+        : subtractions.map(s =>
+            `<div class="card">➖ ₱${s.amount} — ${s.reason || "No reason"}</div>`
+          ).join("");
 
     document.getElementById("summaryBox").innerHTML = `
         <div class="summary">
             💰 Total Funds: ₱${getTotal()} <br><br>
             📥 Paid: ${paid.length} <br>
-            📤 Expenses: ${subtractions.length} <br>
-            ❌ Unpaid: ${unpaid.length}
+            ❌ Unpaid: ${unpaid.length} <br>
+            📤 Expenses: ${subtractions.length}
         </div>
 
         <h3>📤 Expenses List</h3>
+        ${expensesHTML}
+
+        <h3>💰 Paid Details</h3>
         ${
-            subtractions.length === 0
-            ? "<div class='card'>No expenses yet</div>"
-            : subtractions.map(s =>
-                `<div class="card">➖ ₱${s.amount} — ${s.reason || "No reason"}</div>`
+            paid.length === 0
+            ? "<div class='card'>No payments yet</div>"
+            : paid.map(p =>
+                `<div class="card">
+                    ${p.name} — ₱${p.amount} <br>
+                    📝 ${p.reason || "No reason"}
+                </div>`
               ).join("")
         }
     `;
