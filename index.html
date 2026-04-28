@@ -24,6 +24,7 @@ body {
     padding: 15px;
     cursor: pointer;
     color: #cfd6ff;
+    transition: 0.3s;
 }
 
 .tab.active {
@@ -84,6 +85,7 @@ button {
 
 <body>
 
+<!-- TABS -->
 <div class="header">
     <div class="tab active" onclick="showTab('paid')">💰 Paid</div>
     <div class="tab" onclick="showTab('unpaid')">❌ Unpaid</div>
@@ -97,11 +99,11 @@ button {
     <input id="pName" placeholder="Name">
     <input id="pAmount" placeholder="Amount paid">
 
-    <input id="subAmount" placeholder="Subtract amount">
-    <input id="subReason" placeholder="Reason for subtraction">
+    <input id="subAmount" placeholder="Subtract amount (expense)">
+    <input id="subReason" placeholder="Reason for expense">
 
     <button onclick="addPaid()">Add Paid</button>
-    <button onclick="subtract()">➖ Subtract Funds</button>
+    <button onclick="subtract()">➖ Add Expense</button>
 
     <div id="paidList"></div>
 </div>
@@ -170,7 +172,7 @@ function addUnpaid() {
     render();
 }
 
-/* SUBTRACT FUNDS */
+/* ADD EXPENSE */
 function subtract() {
     let amount = Number(document.getElementById("subAmount").value);
     let reason = document.getElementById("subReason").value;
@@ -182,7 +184,7 @@ function subtract() {
     render();
 }
 
-/* TOTAL */
+/* TOTAL FUNDS */
 function getTotal() {
     let totalPaid = paid.reduce((sum, p) => sum + Number(p.amount), 0);
     let totalSub = subtractions.reduce((sum, s) => sum + Number(s.amount), 0);
@@ -190,7 +192,7 @@ function getTotal() {
     return totalPaid - totalSub;
 }
 
-/* RENDER */
+/* RENDER EVERYTHING */
 function render() {
 
     document.getElementById("paidList").innerHTML =
@@ -203,18 +205,22 @@ function render() {
             `<div class="card">❌ ${u.name} — ${u.reason}</div>`
         ).join("");
 
-    let subList = subtractions.map(s =>
-        `<div class="card">➖ ₱${s.amount} — ${s.reason || "No reason"}</div>`
-    ).join("");
-
     document.getElementById("summaryBox").innerHTML = `
-        💰 Total Funds: ₱${getTotal()} <br><br>
-        📥 Paid Entries: ${paid.length} <br>
-        📤 Subtractions: ${subtractions.length} <br>
-        ❌ Unpaid: ${unpaid.length}
-        <br><br>
-        <h3>Expenses</h3>
-        ${subList}
+        <div class="summary">
+            💰 Total Funds: ₱${getTotal()} <br><br>
+            📥 Paid: ${paid.length} <br>
+            📤 Expenses: ${subtractions.length} <br>
+            ❌ Unpaid: ${unpaid.length}
+        </div>
+
+        <h3>📤 Expenses List</h3>
+        ${
+            subtractions.length === 0
+            ? "<div class='card'>No expenses yet</div>"
+            : subtractions.map(s =>
+                `<div class="card">➖ ₱${s.amount} — ${s.reason || "No reason"}</div>`
+              ).join("")
+        }
     `;
 }
 
