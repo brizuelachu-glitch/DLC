@@ -171,7 +171,6 @@ function renderMembers() {
 
         div.innerHTML = `
         <b>${member.name}</b><br>
-<small>${member.reason}</small><br>
         <span style="color:${paid ? 'lightgreen' : 'red'}">
         ${paid ? 'Paid' : 'Not Paid'}
         </span>
