@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
-<head> 
+<head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Unpaid Members List</title>
+<title>Members Tracker</title>
 
 <style>
 body {
-    font-family: Arial, sans-serif;
-    background: #f2f2f2;
+    font-family: Arial;
+    background: #f4f4f4;
     margin: 0;
     padding: 20px;
 }
@@ -16,90 +16,107 @@ h2 {
     text-align: center;
 }
 
-table {
+.container {
+    max-width: 600px;
+    margin: auto;
+}
+
+input, select, button {
     width: 100%;
-    border-collapse: collapse;
-    background: white;
-    margin-top: 20px;
-}
-
-th, td {
-    border: 1px solid #ddd;
     padding: 10px;
-    text-align: left;
-}
-
-th {
-    background: #333;
-    color: white;
-}
-
-tr:nth-child(even) {
-    background: #f9f9f9;
-}
-
-.add-box {
-    margin-top: 20px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-input {
-    padding: 10px;
-    flex: 1;
-    min-width: 120px;
+    margin: 5px 0;
 }
 
 button {
-    padding: 10px 15px;
     background: green;
     color: white;
     border: none;
     cursor: pointer;
+}
+
+.card {
+    background: white;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+}
+
+.unpaid {
+    border-left: 5px solid red;
+}
+
+.paid {
+    border-left: 5px solid green;
 }
 </style>
 </head>
 
 <body>
 
-<h2>Unpaid Members Tracker</h2>
+<div class="container">
 
-<table id="table">
-<tr>
-    <th>Name</th>
-    <th>Reason</th>
-</tr>
-</table>
+<h2>Members Tracker</h2>
 
-<div class="add-box">
-    <input type="text" id="name" placeholder="Member Name">
-    <input type="text" id="reason" placeholder="Reason for not paying">
-    <button onclick="addRow()">Add</button>
+<!-- INPUT -->
+<input type="text" id="name" placeholder="Member Name">
+<input type="text" id="reason" placeholder="Reason (if unpaid)">
+<select id="status">
+    <option value="unpaid">Unpaid</option>
+    <option value="paid">Paid</option>
+</select>
+
+<button onclick="addMember()">Add Member</button>
+
+<!-- LIST -->
+<h3>Unpaid Members</h3>
+<div id="unpaidList"></div>
+
 </div>
 
 <script>
-function addRow() {
+let members = JSON.parse(localStorage.getItem("members")) || [];
+
+function addMember() {
     let name = document.getElementById("name").value;
     let reason = document.getElementById("reason").value;
+    let status = document.getElementById("status").value;
 
-    if (name === "" || reason === "") {
-        alert("Please fill all fields");
+    if (name === "") {
+        alert("Enter a name");
         return;
     }
 
-    let table = document.getElementById("table");
+    members.push({
+        name: name,
+        reason: status === "paid" ? "" : reason,
+        status: status
+    });
 
-    let row = table.insertRow();
-    let cell1 = row.insertCell(0);
-    let cell2 = row.insertCell(1);
-
-    cell1.innerHTML = name;
-    cell2.innerHTML = reason;
+    localStorage.setItem("members", JSON.stringify(members));
 
     document.getElementById("name").value = "";
     document.getElementById("reason").value = "";
+
+    displayMembers();
 }
+
+function displayMembers() {
+    let unpaidDiv = document.getElementById("unpaidList");
+    unpaidDiv.innerHTML = "";
+
+    members.forEach(m => {
+        if (m.status === "unpaid") {
+            unpaidDiv.innerHTML += `
+                <div class="card unpaid">
+                    <b>${m.name}</b><br>
+                    Reason: ${m.reason || "No reason"}
+                </div>
+            `;
+        }
+    });
+}
+
+displayMembers();
 </script>
 
 </body>
