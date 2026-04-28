@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DL Funds</title>
+
+<link rel="manifest" href="manifest.json">
+
+<style>
+body {
+    font-family: Arial;
+    margin: 0;
+    background: #0f172a;
+    color: white;
+    text-align: center;
+}
+
+input, button {
+    width: 80%;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 10px;
+    border: none;
+}
+
+button { background: #2563eb; color: white; }
+
+.page { display: none; padding: 15px; }
+.active { display: block; }
+
+.card {
+    background: #1e293b;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Drum & Lyre Funds</h2>
+
+<input id="member" placeholder="Member">
+<input id="reason" placeholder="Reason">
+<input id="amount" type="number" placeholder="Amount">
+<label><input type="checkbox" id="exp"> Expense</label>
+
+<button onclick="save()">Save</button>
+
+<h3 id="total">₱0</h3>
+
+<div id="list"></div>
+
+<script>
+let data = JSON.parse(localStorage.getItem("funds")) || [];
+
+function save() {
+    let m = document.getElementById("member").value;
+    let r = document.getElementById("reason").value;
+    let a = parseFloat(document.getElementById("amount").value);
+    let e = document.getElementById("exp").checked;
+
+    if (!m || !r || !a) return;
+
+    if (e) a = -a;
+
+    data.push({m,r,a,date:new Date().toLocaleString()});
+    localStorage.setItem("funds", JSON.stringify(data));
+
+    render();
+}
+
+function render() {
+    let total = data.reduce((s,i)=>s+i.a,0);
+    document.getElementById("total").innerText = "₱"+total;
+
+    let list = document.getElementById("list");
+    list.innerHTML="";
+
+    data.slice().reverse().forEach(i=>{
+        let div=document.createElement("div");
+        div.className="card";
+        div.innerHTML=`
+        <b>${i.m}</b><br>
+        ${i.r}<br>
+        ₱${i.a}<br>
+        <small>${i.date}</small>`;
+        list.appendChild(div);
+    });
+}
+
+render();
+</script>
+
+</body>
+</html>
