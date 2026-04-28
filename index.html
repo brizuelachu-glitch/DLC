@@ -5,118 +5,158 @@
 <title>Members Tracker</title>
 
 <style>
-body { 
+body {
     font-family: Arial;
-    background: #f4f4f4;
     margin: 0;
+    background: #f2f2f2;
+}
+
+.header {
+    display: flex;
+    justify-content: space-around;
+    background: #333;
+}
+
+.tab {
+    flex: 1;
+    padding: 15px;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+}
+
+.tab.active {
+    background: green;
+}
+
+.section {
+    display: none;
     padding: 20px;
 }
 
-h2 {
-    text-align: center;
+.section.active {
+    display: block;
 }
 
-.container {
-    max-width: 600px;
-    margin: auto;
-}
-
-input, select, button {
-    width: 100%;
+input {
     padding: 10px;
-    margin: 5px 0;
+    margin: 5px;
+    width: 90%;
 }
 
 button {
+    padding: 10px;
     background: green;
     color: white;
     border: none;
-    cursor: pointer;
+    width: 95%;
+    margin-top: 5px;
 }
 
 .card {
     background: white;
     padding: 10px;
-    margin-top: 10px;
+    margin: 10px 0;
     border-radius: 5px;
-}
-
-.unpaid {
-    border-left: 5px solid red;
-}
-
-.paid {
-    border-left: 5px solid green;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="header">
+    <div class="tab active" onclick="showTab('paid')">💰 Paid</div>
+    <div class="tab" onclick="showTab('unpaid')">❌ Unpaid</div>
+    <div class="tab" onclick="showTab('history')">📊 History</div>
+</div>
 
-<h2>Members Tracker</h2>
+<!-- PAID -->
+<div id="paid" class="section active">
+    <h3>Paid Members</h3>
+    <input id="pName" placeholder="Name">
+    <input id="pAmount" placeholder="Amount paid">
+    <button onclick="addPaid()">Add Paid</button>
+    <div id="paidList"></div>
+</div>
 
-<!-- INPUT -->
-<input type="text" id="name" placeholder="Member Name">
-<input type="text" id="reason" placeholder="Reason (if unpaid)">
-<select id="status">
-    <option value="unpaid">Unpaid</option>
-    <option value="paid">Paid</option>
-</select>
+<!-- UNPAID -->
+<div id="unpaid" class="section">
+    <h3>Unpaid Members</h3>
+    <input id="uName" placeholder="Name">
+    <input id="uReason" placeholder="Reason">
+    <button onclick="addUnpaid()">Add Unpaid</button>
+    <div id="unpaidList"></div>
+</div>
 
-<button onclick="addMember()">Add Member</button>
-
-<!-- LIST -->
-<h3>Unpaid Members</h3>
-<div id="unpaidList"></div>
-
+<!-- HISTORY -->
+<div id="history" class="section">
+    <h3>History</h3>
+    <div id="historyList"></div>
 </div>
 
 <script>
-let members = JSON.parse(localStorage.getItem("members")) || [];
+let paid = JSON.parse(localStorage.getItem("paid")) || [];
+let unpaid = JSON.parse(localStorage.getItem("unpaid")) || [];
 
-function addMember() {
-    let name = document.getElementById("name").value;
-    let reason = document.getElementById("reason").value;
-    let status = document.getElementById("status").value;
-
-    if (name === "") {
-        alert("Enter a name");
-        return;
-    }
-
-    members.push({
-        name: name,
-        reason: status === "paid" ? "" : reason,
-        status: status
-    });
-
-    localStorage.setItem("members", JSON.stringify(members));
-
-    document.getElementById("name").value = "";
-    document.getElementById("reason").value = "";
-
-    displayMembers();
+function save() {
+    localStorage.setItem("paid", JSON.stringify(paid));
+    localStorage.setItem("unpaid", JSON.stringify(unpaid));
 }
 
-function displayMembers() {
-    let unpaidDiv = document.getElementById("unpaidList");
-    unpaidDiv.innerHTML = "";
+// Tabs
+function showTab(tab) {
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
 
-    members.forEach(m => {
-        if (m.status === "unpaid") {
-            unpaidDiv.innerHTML += `
-                <div class="card unpaid">
-                    <b>${m.name}</b><br>
-                    Reason: ${m.reason || "No reason"}
-                </div>
-            `;
-        }
-    });
+    document.getElementById(tab).classList.add("active");
+    event.target.classList.add("active");
 }
 
-displayMembers();
+// PAID
+function addPaid() {
+    let name = document.getElementById("pName").value;
+    let amount = document.getElementById("pAmount").value;
+
+    if (!name || !amount) return;
+
+    paid.push({ name, amount, date: new Date().toLocaleString() });
+    save();
+    render();
+}
+
+// UNPAID
+function addUnpaid() {
+    let name = document.getElementById("uName").value;
+    let reason = document.getElementById("uReason").value;
+
+    if (!name || !reason) return;
+
+    unpaid.push({ name, reason, date: new Date().toLocaleString() });
+    save();
+    render();
+}
+
+// DISPLAY
+function render() {
+
+    document.getElementById("paidList").innerHTML =
+        paid.map(p =>
+            `<div class="card">${p.name} - ₱${p.amount}<br><small>${p.date}</small></div>`
+        ).join("");
+
+    document.getElementById("unpaidList").innerHTML =
+        unpaid.map(u =>
+            `<div class="card">${u.name} - ${u.reason}<br><small>${u.date}</small></div>`
+        ).join("");
+
+    document.getElementById("historyList").innerHTML =
+        `
+        <h4>Paid: ${paid.length}</h4>
+        <h4>Unpaid: ${unpaid.length}</h4>
+        `;
+}
+
+render();
 </script>
 
 </body>
