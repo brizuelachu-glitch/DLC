@@ -16,7 +16,6 @@ body {
 .header {
     display: flex;
     background: #0d1433;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
 }
 
 .tab {
@@ -24,12 +23,7 @@ body {
     text-align: center;
     padding: 15px;
     cursor: pointer;
-    transition: 0.3s;
     color: #cfd6ff;
-}
-
-.tab:hover {
-    background: #1a2250;
 }
 
 .tab.active {
@@ -56,10 +50,9 @@ input {
     border-radius: 8px;
     background: #121a3d;
     color: white;
-    outline: none;
 }
 
-/* BUTTON (NO GREEN ANYWHERE) */
+/* BUTTON */
 button {
     width: 100%;
     padding: 12px;
@@ -69,17 +62,12 @@ button {
     color: white;
     cursor: pointer;
     margin-top: 5px;
-    transition: 0.2s;
 }
 
-button:hover {
-    opacity: 0.85;
-}
-
-/* CARDS */
+/* CARD */
 .card {
     background: rgba(255,255,255,0.06);
-    padding: 12px;
+    padding: 10px;
     margin: 10px 0;
     border-radius: 10px;
     border-left: 4px solid #7a3fff;
@@ -90,7 +78,6 @@ button:hover {
     background: rgba(255,255,255,0.08);
     padding: 15px;
     border-radius: 10px;
-    margin-bottom: 15px;
 }
 </style>
 </head>
@@ -109,12 +96,13 @@ button:hover {
 
     <input id="pName" placeholder="Name">
     <input id="pAmount" placeholder="Amount paid">
-    <button onclick="addPaid()">Add Paid</button>
 
-    <input id="sAmount" placeholder="Subtract amount">
-<input id="sNote" placeholder="Reason for subtraction">
-<button onclick="subtractFunds()">Subtract Funds</button>
-  
+    <input id="subAmount" placeholder="Subtract amount">
+    <input id="subReason" placeholder="Reason for subtraction">
+
+    <button onclick="addPaid()">Add Paid</button>
+    <button onclick="subtract()">➖ Subtract Funds</button>
+
     <div id="paidList"></div>
 </div>
 
@@ -140,10 +128,13 @@ button:hover {
 
 let paid = JSON.parse(localStorage.getItem("paid")) || [];
 let unpaid = JSON.parse(localStorage.getItem("unpaid")) || [];
+let subtractions = JSON.parse(localStorage.getItem("subtractions")) || [];
 
+/* SAVE */
 function save() {
     localStorage.setItem("paid", JSON.stringify(paid));
     localStorage.setItem("unpaid", JSON.stringify(unpaid));
+    localStorage.setItem("subtractions", JSON.stringify(subtractions));
 }
 
 /* TABS */
@@ -179,9 +170,24 @@ function addUnpaid() {
     render();
 }
 
+/* SUBTRACT FUNDS */
+function subtract() {
+    let amount = Number(document.getElementById("subAmount").value);
+    let reason = document.getElementById("subReason").value;
+
+    if (!amount) return;
+
+    subtractions.push({ amount, reason });
+    save();
+    render();
+}
+
 /* TOTAL */
 function getTotal() {
-    return paid.reduce((sum, p) => sum + p.amount, 0);
+    let totalPaid = paid.reduce((sum, p) => sum + Number(p.amount), 0);
+    let totalSub = subtractions.reduce((sum, s) => sum + Number(s.amount), 0);
+
+    return totalPaid - totalSub;
 }
 
 /* RENDER */
@@ -189,18 +195,26 @@ function render() {
 
     document.getElementById("paidList").innerHTML =
         paid.map(p =>
-            `<div class="card">${p.name} — ₱${p.amount}</div>`
+            `<div class="card">💰 ${p.name} — ₱${p.amount}</div>`
         ).join("");
 
     document.getElementById("unpaidList").innerHTML =
         unpaid.map(u =>
-            `<div class="card">${u.name} — ${u.reason}</div>`
+            `<div class="card">❌ ${u.name} — ${u.reason}</div>`
         ).join("");
+
+    let subList = subtractions.map(s =>
+        `<div class="card">➖ ₱${s.amount} — ${s.reason || "No reason"}</div>`
+    ).join("");
 
     document.getElementById("summaryBox").innerHTML = `
         💰 Total Funds: ₱${getTotal()} <br><br>
-        👥 Paid: ${paid.length} <br>
+        📥 Paid Entries: ${paid.length} <br>
+        📤 Subtractions: ${subtractions.length} <br>
         ❌ Unpaid: ${unpaid.length}
+        <br><br>
+        <h3>Expenses</h3>
+        ${subList}
     `;
 }
 
