@@ -2,33 +2,40 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Members Tracker</title>
+<title>Funds Tracker</title>
 
 <style>
 body {
-    font-family: Arial;
     margin: 0;
-    background: #f2f2f2;
+    font-family: Arial;
+    background: linear-gradient(135deg, #0b0f2f, #1a1f4b, #2b1b5a);
+    color: white;
 }
 
+/* HEADER */
 .header {
     display: flex;
-    justify-content: space-around;
-    background: #333;
+    background: #111a3a;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 
 .tab {
     flex: 1;
-    padding: 15px;
-    color: white;
     text-align: center;
+    padding: 15px;
     cursor: pointer;
+    transition: 0.3s;
+}
+
+.tab:hover {
+    background: #2a2f66;
 }
 
 .tab.active {
-    background: green;
+    background: linear-gradient(90deg, #3a3fff, #7a3fff);
 }
 
+/* SECTIONS */
 .section {
     display: none;
     padding: 20px;
@@ -38,26 +45,42 @@ body {
     display: block;
 }
 
+/* INPUTS */
 input {
-    padding: 10px;
-    margin: 5px;
-    width: 90%;
+    width: 100%;
+    padding: 12px;
+    margin: 5px 0;
+    border: none;
+    border-radius: 8px;
 }
 
+/* BUTTON */
 button {
-    padding: 10px;
-    background: green;
-    color: white;
+    width: 100%;
+    padding: 12px;
     border: none;
-    width: 95%;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #3a3fff, #7a3fff);
+    color: white;
+    cursor: pointer;
     margin-top: 5px;
 }
 
+/* CARDS */
 .card {
-    background: white;
+    background: rgba(255,255,255,0.08);
     padding: 10px;
     margin: 10px 0;
-    border-radius: 5px;
+    border-radius: 10px;
+    border-left: 4px solid #7a3fff;
+}
+
+/* SUMMARY */
+.summary {
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
 }
 </style>
 </head>
@@ -67,34 +90,40 @@ button {
 <div class="header">
     <div class="tab active" onclick="showTab('paid')">💰 Paid</div>
     <div class="tab" onclick="showTab('unpaid')">❌ Unpaid</div>
-    <div class="tab" onclick="showTab('history')">📊 History</div>
+    <div class="tab" onclick="showTab('history')">📊 Summary</div>
 </div>
 
 <!-- PAID -->
 <div id="paid" class="section active">
-    <h3>Paid Members</h3>
+    <h2>Paid Members</h2>
+
     <input id="pName" placeholder="Name">
     <input id="pAmount" placeholder="Amount paid">
     <button onclick="addPaid()">Add Paid</button>
+
     <div id="paidList"></div>
 </div>
 
 <!-- UNPAID -->
 <div id="unpaid" class="section">
-    <h3>Unpaid Members</h3>
+    <h2>Unpaid Members</h2>
+
     <input id="uName" placeholder="Name">
     <input id="uReason" placeholder="Reason">
     <button onclick="addUnpaid()">Add Unpaid</button>
+
     <div id="unpaidList"></div>
 </div>
 
-<!-- HISTORY -->
+<!-- SUMMARY -->
 <div id="history" class="section">
-    <h3>History</h3>
-    <div id="historyList"></div>
+    <h2>Funds Summary</h2>
+
+    <div class="summary" id="summaryBox"></div>
 </div>
 
 <script>
+
 let paid = JSON.parse(localStorage.getItem("paid")) || [];
 let unpaid = JSON.parse(localStorage.getItem("unpaid")) || [];
 
@@ -103,7 +132,7 @@ function save() {
     localStorage.setItem("unpaid", JSON.stringify(unpaid));
 }
 
-// Tabs
+/* TABS */
 function showTab(tab) {
     document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
@@ -112,51 +141,57 @@ function showTab(tab) {
     event.target.classList.add("active");
 }
 
-// PAID
+/* ADD PAID */
 function addPaid() {
     let name = document.getElementById("pName").value;
-    let amount = document.getElementById("pAmount").value;
+    let amount = Number(document.getElementById("pAmount").value);
 
     if (!name || !amount) return;
 
-    paid.push({ name, amount, date: new Date().toLocaleString() });
+    paid.push({ name, amount });
     save();
     render();
 }
 
-// UNPAID
+/* ADD UNPAID */
 function addUnpaid() {
     let name = document.getElementById("uName").value;
     let reason = document.getElementById("uReason").value;
 
     if (!name || !reason) return;
 
-    unpaid.push({ name, reason, date: new Date().toLocaleString() });
+    unpaid.push({ name, reason });
     save();
     render();
 }
 
-// DISPLAY
+/* CALCULATE TOTAL FUNDS */
+function getTotal() {
+    return paid.reduce((sum, p) => sum + p.amount, 0);
+}
+
+/* RENDER */
 function render() {
 
     document.getElementById("paidList").innerHTML =
         paid.map(p =>
-            `<div class="card">${p.name} - ₱${p.amount}<br><small>${p.date}</small></div>`
+            `<div class="card">${p.name} — ₱${p.amount}</div>`
         ).join("");
 
     document.getElementById("unpaidList").innerHTML =
         unpaid.map(u =>
-            `<div class="card">${u.name} - ${u.reason}<br><small>${u.date}</small></div>`
+            `<div class="card">${u.name} — ${u.reason}</div>`
         ).join("");
 
-    document.getElementById("historyList").innerHTML =
-        `
-        <h4>Paid: ${paid.length}</h4>
-        <h4>Unpaid: ${unpaid.length}</h4>
-        `;
+    document.getElementById("summaryBox").innerHTML = `
+        💰 Total Funds: ₱${getTotal()} <br><br>
+        👥 Paid Members: ${paid.length} <br>
+        ❌ Unpaid Members: ${unpaid.length}
+    `;
 }
 
 render();
+
 </script>
 
 </body>
